@@ -4,9 +4,239 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/">
-    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="https://storage.googleapis.com/lazy-icons/not-found-placeholder.webp" type="image/x-icon">
     <title>Free Bot & Website Hosting</title>
+    <style>
+      :root {
+        --bg-color: #0a0a0c;
+        --text-color: #ffffff;
+        --header-bg: rgba(17, 17, 20, 0.7);
+        --accent-color: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+      }
+      
+      .main-content {
+        padding-top: 0;
+      }
+      
+      .hero-section {
+        min-height: calc(100vh - 4rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 4rem 2rem;
+      }
+      
+      .gradient-orb {
+        position: absolute;
+        width: 40rem;
+        height: 40rem;
+        background: radial-gradient(circle, var(--accent-color) 0%, transparent 70%);
+        opacity: 0.15;
+        filter: blur(60px);
+        animation: float 10s ease-in-out infinite;
+        top: -20%;
+        left: -10%;
+      }
+      
+      .gradient-orb.secondary {
+        background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+        top: auto;
+        bottom: -20%;
+        right: -10%;
+        left: auto;
+        animation-delay: -5s;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(10%, 10%); }
+      }
+      
+      .hero-content {
+        max-width: 1200px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .hero-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+      }
+      
+      .gradient-text {
+        background: linear-gradient(135deg, var(--accent-color), #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .hero-subtitle {
+        font-size: clamp(1.1rem, 2vw, 1.5rem);
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 3rem;
+      }
+      
+      .hero-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+      }
+      
+      .feature-item {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+      }
+      
+      .feature-item:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+      }
+      
+      .feature-icon {
+        width: 3rem;
+        height: 3rem;
+        margin: 0 auto 1rem;
+        color: var(--accent-color);
+      }
+      
+      .feature-item h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      
+      .feature-item p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+      }
+      
+      .pricing-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      .pricing-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        position: relative;
+      }
+      
+      .pricing-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+      }
+      
+      .pricing-card.premium {
+        background: linear-gradient(145deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3));
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      }
+      
+      .card-content {
+        padding: 2rem;
+      }
+      
+      .pricing-card h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: var(--accent-color);
+      }
+      
+      .price span {
+        font-size: 1rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .features {
+        list-style: none;
+      }
+      
+      .features li {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+      }
+      
+      .features li.sub-feature {
+        margin-left: 1rem;
+        font-size: 0.9em;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .features li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: var(--accent-color);
+      }
+      
+      .features li.bullet::before {
+        content: "•";
+      }
+      
+      @media (max-width: 768px) {
+        .app-container {
+          padding: 1rem;
+        }
+      
+        .hero-section {
+          padding: 2rem 1rem;
+        }
+      
+        .pricing-cards {
+          gap: 1rem;
+        }
+      
+        .md\:hidden {
+          display: block;
+        }
+      
+        .md\:block {
+          display: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="main-content">
