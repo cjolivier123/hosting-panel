@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://storage.googleapis.com/lazy-icons/not-found-placeholder.webp" type="image/x-icon">
+    <title>Environment Variables - {{ server.name }}</title>
+    <style>
+      :root {
+        --bg-color: #0a0a0c;
+        --text-color: #ffffff;
+        --header-bg: rgba(17, 17, 20, 0.7);
+        --accent-color: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: var(--header-bg);
+        border-radius: 0.5rem;
+        backdrop-filter: blur(10px);
+      }
+      
+      .server-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      
+      .server-name {
+        font-weight: 600;
+        font-size: 1.2rem;
+      }
+      
+      .back-btn {
+        padding: 0.5rem 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+      }
+      
+      .back-btn:hover {
+        background: var(--accent-hover);
+      }
+      
+      .tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      
+      .tab {
+        padding: 0.75rem 1.5rem;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.5rem;
+        color: var(--text-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+      
+      .tab:hover {
+        border-color: var(--accent-color);
+      }
+      
+      .tab.active {
+        background: var(--accent-color);
+       border-color: var(--accent-color);
+     }
+     
+     .env-manager {
+       background: var(--console-bg);
+       border: 1px solid var(--card-border);
+       border-radius: 0.5rem;
+       overflow: hidden;
+       padding: 1rem;
+     }
+     
+     .env-header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 1rem;
+       background: rgba(255, 255, 255, 0.05);
+       border-bottom: 1px solid var(--card-border);
+     }
+     
+     .env-list {
+       padding: 1rem;
+     }
+     
+     .env-item {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 0.75rem;
+       border-radius: 0.5rem;
+       transition: background-color 0.3s;
+       cursor: pointer;
+     }
+     
+     .env-item:nth-child(odd) {
+       background: rgba(255, 255, 255, 0.02);
+     }
+     
+     .env-item:hover {
+       background: rgba(255, 255, 255, 0.05);
+     }
+     
+     .env-info {
+       display: flex;
+       align-items: center;
+       gap: 1rem;
+     }
+     
+     .env-key {
+       font-weight: 600;
+     }
+     
+     .env-value {
+       color: rgba(255, 255, 255, 0.6);
+       font-size: 0.9rem;
+     }
+   </style>
+ </head>
+ <body>
+   <div class="container">
+     <div class="header">
+       <div class="server-info">
+         <div class="server-name">{{ server.name }}</div>
+       </div>
+       <a href="/panel" class="back-btn">Back to Panel</a>
+     </div>
+     
+     <div class="tabs">
+       <a href="/console/{{ server.id }}" class="tab">Console</a>
+       <a href="/console/{{ server.id }}/files" class="tab">Files</a>
+       <a href="/console/{{ server.id }}/env" class="tab active">Environment</a>
+     </div>
+     
+     <div class="env-manager">
+       <div class="env-header">
+         <h2>Environment Variables</h2>
+         <button class="action-btn" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.3s;">Add Variable</button>
+       </div>
+       <div class="env-list">
+         <div class="env-item">
+           <div class="env-info">
+             <span class="env-key">API_KEY</span>
+             <span class="env-value">************</span>
+           </div>
+           <button class="action-btn" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.3s;">Edit</button>
+         </div>
+         <div class="env-item">
+           <div class="env-info">
+             <span class="env-key">DB_HOST</span>
+             <span class="env-value">localhost</span>
+           </div>
+           <button class="action-btn" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 0.3s;">Edit</button>
+         </div>
+       </div>
+     </div>
+   </div>
+ </body>
+</html>
