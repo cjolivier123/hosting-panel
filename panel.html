@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://storage.googleapis.com/lazy-icons/not-found-placeholder.webp" type="image/x-icon">
+    <title>Control Panel - Free Bot & Website Hosting</title>
+    <style>
+      :root {
+        --bg-color: #0a0a0c;
+        --text-color: #ffffff;
+        --header-bg: rgba(17, 17, 20, 0.7);
+        --accent-color: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      
+      .panel-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      
+      .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      
+      .dialog-content {
+        background: var(--console-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        width: 90%;
+        max-width: 600px;
+      }
+      
+      .dialog-content h2 {
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+      
+      .hosting-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .hosting-option {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .hosting-option:not(.disabled):hover {
+        border-color: var(--accent-color);
+        transform: translateY(-2px);
+      }
+      
+      .hosting-option.selected {
+        border-color: var(--accent-color);
+        background: rgba(139, 92, 246, 0.1);
+      }
+      
+      .hosting-option.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      
+     .option-header {
+       display: flex;
+       align-items: center;
+       gap: 0.5rem;
+       margin-bottom: 0.5rem;
+     }
+     
+     .maintenance-tag {
+       background: #f97316;
+       color: white;
+       padding: 0.25rem 0.5rem;
+       border-radius: 0.25rem;
+       font-size: 0.75rem;
+     }
+     
+     #serverNameInput {
+       margin-bottom: 1.5rem;
+     }
+     
+     #serverNameInput label {
+       display: block;
+       margin-bottom: 0.5rem;
+     }
+     
+     #serverNameInput input {
+       width: 100%;
+       padding: 0.75rem;
+       border: 1px solid var(--card-border);
+       border-radius: 0.5rem;
+       background: rgba(255, 255, 255, 0.05);
+       color: var(--text-color);
+     }
+     
+     .dialog-buttons {
+       display: flex;
+       justify-content: flex-end;
+       gap: 1rem;
+       margin-top: 1.5rem;
+     }
+     
+     .cancel-btn {
+       padding: 0.75rem 1.5rem;
+       border: 1px solid var(--card-border);
+       border-radius: 0.5rem;
+       background: transparent;
+       color: var(--text-color);
+       cursor: pointer;
+       transition: all 0.3s ease;
+     }
+     
+     .create-btn {
+       padding: 0.75rem 1.5rem;
+       border: none;
+       border-radius: 0.5rem;
+       background: var(--accent-color);
+       color: white;
+       cursor: pointer;
+       transition: all 0.3s ease;
+     }
+     
+     .create-btn:disabled {
+       opacity: 0.5;
+       cursor: not-allowed;
+     }
+     
+     .create-btn:not(:disabled):hover {
+       background: var(--accent-hover);
+     }
+      
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: var(--header-bg);
+        border-radius: 0.5rem;
+        backdrop-filter: blur(10px);
+      }
+      
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      
+      .user-email {
+        font-weight: 500;
+      }
+      
+      .logout-btn {
+        padding: 0.5rem 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-decoration: none;
+      }
+      
+      .logout-btn:hover {
+        background: var(--accent-hover);
+      }
+      
+      .servers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+        align-items: start;
+      }
+      
+      .server-stats {
+        min-height: 120px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      
+      .server-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--text-color);
+      }
+      
+      .server-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+      }
+      
+      .server-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      
+      .server-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      
+      .server-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      
+      .status-online {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+      }
+      
+      .status-offline {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      
+      .server-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+        min-height: 120px; /* Ensure enough space for stats */
+      }
+      
+      .stat-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+      
+      .stat-label {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .stat-value {
+        font-weight: 600;
+        margin-top: 0.25rem;
+      }
+      
+      .server-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      
+      .action-btn {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid var(--card-border);
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .action-btn:hover {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+      
+      .add-server {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        border: 2px dashed var(--card-border);
+        border-radius: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .add-server:hover {
+        border-color: var(--accent-color);
+        background: var(--card-bg);
+      }
+      
+      .add-server-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--accent-color);
+      }
+      
+      @media (max-width: 768px) {
+        .panel-container {
+          padding: 1rem;
+        }
+        
+        .servers-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .panel-header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel-container">
+      <div class="panel-header">
+        <div class="user-info">
+          <span class="user-email">{{ user.email }}</span>
+        </div>
+        <a href="/logout" class="logout-btn">Logout</a>
+      </div>
+      
+      <div class="servers-grid">
+        {% for server in servers %}
+        <a href="/console/{{ server.id }}" class="server-card" id="server-{{ server.id }}">
+          <div class="server-header">
+            <div class="server-name">{{ server.name }}</div>
+            <div class="server-status {% if server.is_online %}status-online{% else %}status-offline{% endif %}">
+              {{ "Online" if server.is_online else "Offline" }}
+            </div>
+          </div>
+          <div class="server-stats">
+            <div class="stat-item">
+              <div class="stat-label">CPU Usage</div>
+              <div class="stat-value" id="cpu-{{ server.id }}">{{ server.cpu_usage }}%</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Memory</div>
+              <div class="stat-value" id="memory-{{ server.id }}">{{ server.memory_usage }}MB</div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+        
+        <div class="server-card add-server" onclick="showServerDialog()">
+          <div class="add-server-icon">+</div>
+          <div>Add New Server</div>
+        </div>
+      </div>
+      
+      <!-- Server Creation Dialog -->
+      <div id="serverDialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog-content">
+          <h2>Create New Server</h2>
+          <div class="hosting-options">
+            <div class="hosting-option" onclick="selectHostingType('web')">
+              <div class="option-header">
+                <h3>Web Hosting</h3>
+              </div>
+              <p>Host your static websites</p>
+            </div>
+            <div class="hosting-option disabled">
+              <div class="option-header">
+                <h3>Bot Hosting</h3>
+                <span class="maintenance-tag">Maintenance</span>
+                <span class="lock-icon">🔒</span>
+              </div>
+              <p>Host your Discord bots</p>
+            </div>
+          </div>
+          <div id="serverNameInput" style="display: none;">
+            <label for="serverName">Server Name:</label>
+            <input type="text" id="serverName" placeholder="Enter server name">
+          </div>
+          <div class="dialog-buttons">
+            <button onclick="hideServerDialog()" class="cancel-btn">Cancel</button>
+            <button onclick="createServer()" class="create-btn" disabled>Create Server</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      let selectedHostingType = null;
+      
+      // Update server stats every second
+      function updateServerStats() {
+        document.querySelectorAll('.server-card').forEach(serverCard => {
+          const serverId = serverCard.id.split('-')[1];
+          fetch(`/console/${serverId}/stats`)
+            .then(response => response.json())
+            .then(stats => {
+              const cpuElement = document.getElementById(`cpu-${serverId}`);
+              const memoryElement = document.getElementById(`memory-${serverId}`);
+              if (cpuElement) cpuElement.textContent = `${stats.cpu_usage}%`;
+              if (memoryElement) memoryElement.textContent = `${stats.memory_usage}MB`;
+            })
+            .catch(error => console.error('Error updating stats:', error));
+        });
+      }
+      
+      // Start updating stats every second
+      setInterval(updateServerStats, 1000);
+      
+      function showServerDialog() {
+        document.getElementById('serverDialog').style.display = 'flex';
+        document.getElementById('serverNameInput').style.display = 'none';
+        document.getElementById('serverName').value = '';
+        document.querySelector('.create-btn').disabled = true;
+        selectedHostingType = null;
+        
+        // Remove selected class from all options
+        document.querySelectorAll('.hosting-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+      }
+      
+      function hideServerDialog() {
+        document.getElementById('serverDialog').style.display = 'none';
+      }
+      
+      function selectHostingType(type) {
+        if (type === 'web') {
+          selectedHostingType = type;
+          document.getElementById('serverNameInput').style.display = 'block';
+          
+          // Update selected styling
+          document.querySelectorAll('.hosting-option').forEach(option => {
+            if (option.querySelector('h3').textContent === 'Web Hosting') {
+              option.classList.add('selected');
+            } else {
+              option.classList.remove('selected');
+            }
+          });
+          
+          // Enable create button if server name is not empty
+          const serverName = document.getElementById('serverName').value.trim();
+          document.querySelector('.create-btn').disabled = !serverName;
+        }
+      }
+      
+      // Add input event listener to server name input
+      document.getElementById('serverName').addEventListener('input', function(e) {
+        const serverName = e.target.value.trim();
+        document.querySelector('.create-btn').disabled = !serverName;
+      });
+      
+      function createServer() {
+        const serverName = document.getElementById('serverName').value.trim();
+        if (selectedHostingType === 'web' && serverName) {
+          fetch('/create_server', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              server_name: serverName,
+              server_type: 'web'
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+            } else {
+              // Hide the dialog
+              hideServerDialog();
+              
+              // Redirect to the upload page
+              window.location.href = data.redirect_url;
+            }
+          })
+          .catch(error => {
+            console.error('Error creating server:', error);
+            alert('Failed to create server');
+          });
+        }
+      }
+    </script>
+  </body>
+</html>
