@@ -45,6 +45,24 @@
         padding: 4rem 2rem;
       }
       
+      .get-started-btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        margin: 1rem 0 3rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: white;
+        text-decoration: none;
+        background: linear-gradient(135deg, var(--accent-color), #3b82f6);
+        border-radius: 0.5rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      
+      .get-started-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      }
+      
       .gradient-orb {
         position: absolute;
         width: 40rem;
@@ -246,6 +264,7 @@
         <div class="hero-content">
           <h1 class="hero-title">Host Your Projects <span class="gradient-text">Instantly</span></h1>
           <p class="hero-subtitle">Professional Discord Bot & Website Hosting - Lightning Fast, Secure, and Always Online. Join thousands of developers who trust us with their projects.</p>
+          <a href="/signup" class="get-started-btn">Get Started</a>
           <div class="hero-features">
             <div class="feature-item">
               <div class="feature-icon">
