@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <style>
+      :root {
+        --bg-color: #0a0a0c;
+        --text-color: #ffffff;
+        --header-bg: rgba(17, 17, 20, 0.7);
+        --accent-color: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .success-container {
+        text-align: center;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        width: 90%;
+        max-width: 600px;
+      }
+      
+      .success-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+      
+      .upload-zone {
+        border: 2px dashed var(--card-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin: 2rem 0;
+        transition: all 0.3s ease;
+      }
+      
+      .upload-zone.dragover {
+        border-color: var(--accent-color);
+        background: rgba(139, 92, 246, 0.1);
+      }
+      
+      .url-display {
+        margin: 2rem 0;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+      }
+      
+      .url-display a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+      }
+      
+      .action-btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.3s ease;
+        margin: 0.5rem;
+      }
+      
+      .action-btn:hover {
+        background: var(--accent-hover);
+      }
+      
+      .action-btn.secondary {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+      }
+      
+      .action-btn.secondary:hover {
+       border-color: var(--accent-color);
+     }
+   </style>
+   <link rel="icon" href="https://storage.googleapis.com/lazy-icons/not-found-placeholder.webp" type="image/x-icon">
+   <title>Upload Your Website - Free Bot & Website Hosting</title>
+ </head>
+ <body>
+   <div class="success-container">
+     <h1 class="success-title">Upload Your Website</h1>
+     <p>Your server has been created successfully! Now, let's upload your website files.</p>
+     
+     <div class="upload-zone" id="uploadZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+       <p>Drag and drop your website zip file here</p>
+       <p>or</p>
+       <button class="action-btn" onclick="document.getElementById('fileInput').click()">Select File</button>
+       <input type="file" id="fileInput" style="display: none" accept=".zip" onchange="handleFileSelect(event)">
+     </div>
+     
+     <div class="url-display">
+       <p>Your website will be available at:</p>
+       <a href="/app/{{ server.url_code }}" target="_blank">/app/{{ server.url_code }}</a>
+     </div>
+     
+     <div class="actions">
+       <a href="/panel" class="action-btn secondary">Back to Panel</a>
+     </div>
+   </div>
+   
+   <script>
+     const serverId = '{{ server.id }}';
+     const urlCode = '{{ server.url_code }}';
+     
+     function handleDragOver(e) {
+       e.preventDefault();
+       document.getElementById('uploadZone').classList.add('dragover');
+     }
+     
+     function handleDragLeave(e) {
+       e.preventDefault();
+       document.getElementById('uploadZone').classList.remove('dragover');
+     }
+     
+     function handleDrop(e) {
+       e.preventDefault();
+       document.getElementById('uploadZone').classList.remove('dragover');
+       const files = e.dataTransfer.files;
+       if (files.length > 0) {
+         handleFile(files[0]);
+       }
+     }
+     
+     function handleFileSelect(e) {
+       const file = e.target.files[0];
+       if (file) {
+         handleFile(file);
+       }
+     }
+     
+     function handleFile(file) {
+       if (!file.name.toLowerCase().endsWith('.zip')) {
+         alert('Please upload a zip file');
+         return;
+       }
+       
+       const formData = new FormData();
+       formData.append('file', file);
+       
+       fetch(`/console/${serverId}/upload`, {
+         method: 'POST',
+         body: formData
+       })
+       .then(response => response.json())
+       .then(data => {
+         if (data.error) {
+           alert(data.error);
+         } else {
+           // Redirect to the server console page
+           window.location.href = data.server.redirect_url;
+         }
+       })
+       .catch(error => {
+         console.error('Error uploading file:', error);
+         alert('Failed to upload file');
+       });
+     }
+   </script>
+ </body>
+</html>
