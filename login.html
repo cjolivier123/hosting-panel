@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://storage.googleapis.com/lazy-icons/not-found-placeholder.webp" type="image/x-icon">
+    <title>Login - Free Bot & Website Hosting</title>
+    <style>
+      :root {
+        --bg-color: #0a0a0c;
+        --text-color: #ffffff;
+        --header-bg: rgba(17, 17, 20, 0.7);
+        --accent-color: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .login-container {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 1rem;
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+        backdrop-filter: blur(10px);
+      }
+      
+      .login-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+      
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      
+      .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--card-border);
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-color);
+        font-size: 1rem;
+      }
+      
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+      }
+      
+      .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      
+      .submit-btn:hover {
+        background: var(--accent-hover);
+      }
+      
+      .links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+      }
+      
+      .links a {
+        color: var(--text-color);
+        text-decoration: none;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+        font-size: 0.9rem;
+      }
+      
+      .links a:hover {
+        opacity: 1;
+      }
+      
+      .error-message {
+        color: #ef4444;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1 class="login-title">Login</h1>
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+          {% if errors.email %}
+            <div class="error-message">{{ errors.email }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+          {% if errors.password %}
+            <div class="error-message">{{ errors.password }}</div>
+          {% endif %}
+        </div>
+        <button type="submit" class="submit-btn">Login</button>
+      </form>
+      <div class="links">
+        <a href="/signup">Create Account</a>
+        <a href="/forgot-password">Forgot Password?</a>
+      </div>
+      <div class="links" style="justify-content: center; margin-top: 1rem;">
+        <a href="/">Back to Home</a>
+      </div>
+    </div>
+  </body>
+</html>
