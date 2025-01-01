@@ -1,20 +1,34 @@
-from models import Server
-
+import os
+import shutil
 import logging
-import json
 from datetime import datetime
 from gunicorn.app.base import BaseApplication
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
-from app_init import create_initialized_flask_app
+from models import db, Server
+from routes import register_routes
 
 # Setup logging
-logging.abasicConfig(level=logging.INFO)
-loggaer = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Flask app creation should be done by create_initialized_flask_app to avoid circular dependency problems.
-app = create_initialized_flask_app()
+# Create storage directory if it doesn't exist
+os.makedirs('storage', exist_ok=True)
+
+# Create Flask app
+app = Flask(__name__, static_folder='static')
+app.config['SECRET_KEY'] = 'supersecretflaskskey'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
+db.init_app(app)
 socketio = SocketIO(app)
+
+# Register routes
+register_routes(app)
+
+# Serve manifest.json
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
 
 class StandaloneApplication(BaseApplication):
     def __init__(self, app, options=None):
