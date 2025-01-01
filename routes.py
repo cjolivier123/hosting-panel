@@ -1,3 +1,7 @@
+import shutil
+import os
+from models import uuid
+
 import requests
 import random
 from models import Server
@@ -154,8 +158,9 @@ def register_routes(app):
     @app.route("/signup", methods=["GET", "POST"])
     def signup_route():
         if request.method == "POST":
-            email = request.form.get("email")
-            password = request.form.get("password")
+            data = request.get_json()
+            email = data.get("email")
+            password = data.get("password")
             
             errors = {}
             if not email:
@@ -164,13 +169,13 @@ def register_routes(app):
                 errors["password"] = "Password is required"
             
             if errors:
-                return render_template("signup.html", errors=errors)
+                return jsonify({"success": False, "errors": errors})
             
             # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
                 errors["email"] = "Email already registered"
-                return render_template("signup.html", errors=errors)
+                return jsonify({"success": False, "errors": errors})
             
             # Create new user
             new_user = User(email=email)
@@ -182,32 +187,41 @@ def register_routes(app):
                 # Log the user in after signup
                 session["user_id"] = new_user.id
                 session["email"] = new_user.email
-                return redirect(url_for("panel_route"))
+                return jsonify({
+                    "success": True,
+                    "redirect": url_for("panel_route")
+                })
             except Exception as e:
                 logger.error(f"Error creating user: {str(e)}")
-                errors["general"] = "Error creating account. Please try again."
-                return render_template("signup.html", errors=errors)
+                return jsonify({
+                    "success": False,
+                    "errors": {"general": "Error creating account. Please try again."}
+                })
         
-        return render_template("signup.html", errors={})
+        return render_template("signup.html")
 
     @app.route("/login", methods=["GET", "POST"])
     def login_route():
         if request.method == "POST":
-            email = request.form.get("email")
-            password = request.form.get("password")
+            data = request.get_json()
+            email = data.get("email")
+            password = data.get("password")
             
             errors = {}
             user = User.query.filter_by(email=email).first()
             
             if not user or not user.check_password(password):
                 errors["email"] = "Invalid email or password"
-                return render_template("login.html", errors=errors)
+                return jsonify({"success": False, "errors": errors})
             
             session["user_id"] = user.id
             session["email"] = user.email
-            return redirect(url_for("panel_route"))
+            return jsonify({
+                "success": True,
+                "redirect": url_for("panel_route")
+            })
         
-        return render_template("login.html", errors={})
+        return render_template("login.html")
 
     @app.route("/panel")
     def panel_route():
@@ -216,18 +230,17 @@ def register_routes(app):
         
         # Get all servers for this user
         servers = Server.query.filter_by(user_id=session["user_id"]).all()
-        
-        # Delete any test servers
-        for server in servers:
-            if server.name == "Test Bot":
-                db.session.delete(server)
-        db.session.commit()
-        
-        # Refresh the server list after deletion
-        servers = Server.query.filter_by(user_id=session["user_id"]).all()
         server_list = []
         
         for server in servers:
+            # Skip test servers
+            if server.name == "Test Bot":
+                try:
+                    db.session.delete(server)
+                    continue
+                except Exception as e:
+                    logger.error(f"Error deleting test server: {str(e)}")
+            
             server_list.append({
                 "id": server.id,
                 "name": server.name,
@@ -235,6 +248,12 @@ def register_routes(app):
                 "cpu_usage": server.cpu_usage,
                 "memory_usage": server.memory_usage
             })
+        
+        try:
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error committing test server deletions: {str(e)}")
+            db.session.rollback()
         
         user = User.query.get(session["user_id"])
         if not user:
@@ -299,6 +318,18 @@ def register_routes(app):
 
     @app.route("/logout")
     def logout_route():
+        # Delete any test servers before logging out
+        if "user_id" in session:
+            test_servers = Server.query.filter_by(
+                user_id=session["user_id"],
+                name="Test Bot"
+            ).all()
+            for server in test_servers:
+                try:
+                    db.session.delete(server)
+                except Exception as e:
+                    logger.error(f"Error deleting test server: {str(e)}")
+            db.session.commit()
         session.clear()
         return redirect(url_for("home_route"))
 
@@ -465,10 +496,22 @@ def register_routes(app):
             return jsonify({"error": "No file selected"}), 400
 
         try:
-            # Upload file to storage
-            file_id = upload_file_to_storage(file)
-            size = len(file.read())  # Get the size of the file
-            file.seek(0)  # Reset file pointer
+            # Save file to temporary location
+            temp_dir = tempfile.mkdtemp()
+            temp_path = os.path.join(temp_dir, file.filename)
+            file.save(temp_path)
+            
+            # Get file size
+            size = os.path.getsize(temp_path)
+            
+            # Generate unique file ID
+            file_id = str(uuid.uuid4())
+            
+            # Move file to permanent storage
+            storage_dir = os.path.join('storage', server_id)
+            os.makedirs(storage_dir, exist_ok=True)
+            storage_path = os.path.join(storage_dir, file_id)
+            shutil.move(temp_path, storage_path)
             
             # Create database entry
             upload = Upload(
@@ -479,6 +522,7 @@ def register_routes(app):
                 user_id=session["user_id"]
             )
             db.session.add(upload)
+            
             # Set server as online
             server.is_online = True
             
@@ -486,14 +530,9 @@ def register_routes(app):
             logger.info(f"Upload record created with ID: {upload.id}")
 
             # Extract and validate zip content
-            file_url = url_for_uploaded_file(file_id)
-            response = requests.get(file_url)
-            with tempfile.NamedTemporaryFile() as temp_file:
-                temp_file.write(response.content)
-                temp_file.seek(0)
-                with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
-                    if 'index.html' not in zip_ref.namelist():
-                        return jsonify({"error": "Zip file must contain an index.html"}), 400
+            with zipfile.ZipFile(storage_path, 'r') as zip_ref:
+                if 'index.html' not in zip_ref.namelist():
+                    return jsonify({"error": "Zip file must contain an index.html"}), 400
 
             website_url = f"/app/{server.url_code}"
             logger.info(f"Website is now accessible at: {website_url}")
@@ -511,6 +550,12 @@ def register_routes(app):
         except Exception as e:
             logger.error(f"Error uploading file: {str(e)}")
             return jsonify({"error": "Failed to upload file"}), 500
+        finally:
+            # Clean up temporary directory
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception as e:
+                logger.error(f"Error cleaning up temp directory: {str(e)}")
 
     @app.route("/app/<url_code>", methods=["GET"])
     def serve_website(url_code):
@@ -535,18 +580,13 @@ def register_routes(app):
         
         logger.info(f"Found upload {upload.id} for server {server.id}")
         try:
-            file_url = url_for_uploaded_file(upload.file_id)
-            response = requests.get(file_url)
+            storage_path = os.path.join('storage', str(server.id), upload.file_id)
             
-            with tempfile.NamedTemporaryFile() as temp_file:
-                temp_file.write(response.content)
-                temp_file.seek(0)
-                
-                with zipfile.ZipFile(temp_file.name, 'r') as zip_ref:
-                    if 'index.html' not in zip_ref.namelist():
-                        return "index.html not found in the uploaded zip", 404
-                    # Extract index.html content
-                    return zip_ref.read('index.html').decode('utf-8')
+            with zipfile.ZipFile(storage_path, 'r') as zip_ref:
+                if 'index.html' not in zip_ref.namelist():
+                    return "index.html not found in the uploaded zip", 404
+                # Extract index.html content
+                return zip_ref.read('index.html').decode('utf-8')
         except Exception as e:
             logger.error(f"Error serving website: {str(e)}")
             return "Error loading website", 500
