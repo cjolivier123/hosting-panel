@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import shutil
 import logging
 from datetime import datetime
@@ -22,6 +23,53 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
 db.init_app(app)
 socketio = SocketIO(app)
 
+def init_db():
+    """Initialize the database with the latest schema"""
+    try:
+        # Get the list of migration files
+        migration_files = sorted([f for f in os.listdir('migrations') if f.endswith('.sql')])
+        
+        # Connect to the database
+        conn = sqlite3.connect('your_database.db')
+        cursor = conn.cursor()
+        
+        # Create migrations table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS migrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                filename TEXT NOT NULL UNIQUE,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Get list of applied migrations
+        cursor.execute('SELECT filename FROM migrations')
+        applied_migrations = {row[0] for row in cursor.fetchall()}
+        
+        # Apply new migrations
+        for filename in migration_files:
+            if filename not in applied_migrations:
+                logger.info(f"Applying migration: {filename}")
+                
+                # Read and execute the migration file
+                with open(os.path.join('migrations', filename)) as f:
+                    migration_sql = f.read()
+                    cursor.executescript(migration_sql)
+                
+                # Record the migration
+                cursor.execute('INSERT INTO migrations (filename) VALUES (?)', (filename,))
+                conn.commit()
+        
+        conn.close()
+        logger.info("Database initialization completed successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {str(e)}")
+        raise
+
+# Initialize database before first request
+with app.app_context():
+    init_db()
+
 # Register routes
 register_routes(app)
 
@@ -30,57 +78,5 @@ register_routes(app)
 def manifest():
     return send_from_directory('static', 'manifest.json')
 
-class StandaloneApplication(BaseApplication):
-    def __init__(self, app, options=None):
-        self.application = app
-        self.options = options or {}
-        super().__init__()
-
-    def load_config(self):
-        # Apply configuration to Gunicorn
-        for key, value in self.options.items():
-            if key in self.cfg.settings and value is not None:
-                self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
-
-@socketio.on('connect')
-def handle_connect():
-    logger.info('Client connected')
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    logger.info('Client disconnected')
-
-@socketio.on('request_stats')
-def handle_stats_request(data):
-    server_id = data.get('server_id')
-    if server_id:
-        # Fetch actual server stats from the database
-        server = Server.query.filter_by(id=server_id).first()
-        if server:
-            stats = {
-                'cpu_usage': server.cpu_usage,  # Fetch actual CPU usage
-                'memory_usage': server.memory_usage,  # Fetch actual memory usage
-                'uptime': server.uptime,  # Fetch actual uptime
-                'timestamp': datetime.now().isoformat()
-            }
-            socketio.emit('stats_update', stats)
-        else:
-            logger.error(f"Server not found for ID: {server_id}")
-
 if __name__ == "__main__":
-    options = {
-        "bind": "0.0.0.0:8080",
-        "loglevel": "info",
-        "accesslog": "-",
-        "timeout": 120,
-        "preload": True,
-        "workers": 2,
-        "worker_class": "eventlet",
-        "threads": 10,
-        "max_requests": 300,
-        "max_requests_jitter": 50
-    }
     socketio.run(app, host='0.0.0.0', port=8080)
